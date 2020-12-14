@@ -1,32 +1,40 @@
+
+
 import 'dart:math';
 
+import 'package:dsi_app/cadastro.dart';
 import 'package:dsi_app/constants.dart';
 import 'package:dsi_app/infra.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsiScaffold(
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: _buildBody(),
     );
   }
 
-  Widget _buildAppBar() {
+  void cadastro(context) {
+    dsiHelper.go(context, CadastroPage());
+  }
+  Widget _buildAppBar(context) {
     return AppBar(
       leading: Icon(Icons.menu),
       title: Text('Home'),
       actions: <Widget>[
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Icon(Icons.search),
+          child: IconButton(onPressed:()=> cadastro(context), icon: Icon(Icons.search),),
         ),
         Icon(Icons.more_vert),
       ],
     );
   }
+
 
   Widget _buildBody() {
     return Opacity(
@@ -46,3 +54,7 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+
+
+//------------------------------ tentativa de criar uma classe stateful para  usar o método de navegação de telas
+
