@@ -1,40 +1,18 @@
-
-
 import 'dart:math';
 
-import 'package:dsi_app/cadastro.dart';
 import 'package:dsi_app/constants.dart';
-import 'package:dsi_app/infra.dart';
+import 'package:dsi_app/dsi_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsiScaffold(
-      appBar: _buildAppBar(context),
+      title: 'Home',
       body: _buildBody(),
     );
   }
-
-  void cadastro(context) {
-    dsiHelper.go(context, CadastroPage());
-  }
-  Widget _buildAppBar(context) {
-    return AppBar(
-      leading: Icon(Icons.menu),
-      title: Text('Home'),
-      actions: <Widget>[
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: IconButton(onPressed:()=> cadastro(context), icon: Icon(Icons.search),),
-        ),
-        Icon(Icons.more_vert),
-      ],
-    );
-  }
-
 
   Widget _buildBody() {
     return Opacity(
@@ -42,9 +20,12 @@ class HomePage extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xfff7ffe8), Color(0xffc2ca94)], // Color(0xffc7ffba)
+            colors: [
+              Constants.colorGreenBSI3,
+              Constants.colorGreenBSI2,
+            ],
             stops: [0.8, 1.0],
-            transform: GradientRotation(pi / 2.03),
+            transform: GradientRotation(pi / 2),
           ),
           image: DecorationImage(
             image: Images.bsiLogo,
@@ -54,7 +35,3 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
-
-//------------------------------ tentativa de criar uma classe stateful para  usar o método de navegação de telas
-

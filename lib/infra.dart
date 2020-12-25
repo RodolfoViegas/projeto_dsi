@@ -4,86 +4,70 @@ import 'package:flutter/material.dart';
 final dsiHelper = _DsiHelper();
 
 class _DsiHelper {
-  Size getBodySize(BuildContext context) {
+  Size getScreenSize(BuildContext context) {
     return MediaQuery.of(context).size;
   }
 
-  double getBodyHeight(BuildContext context) {
-    return getBodySize(context).height;
+  double getScreenHeight(BuildContext context) {
+    return getScreenSize(context).height;
   }
 
-  double getBodyWidth(BuildContext context) {
-    return getBodySize(context).width;
+  double getScreenWidth(BuildContext context) {
+    return getScreenSize(context).width;
   }
 
-  void go(context, page) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => page),
-    );
+  void go(context, routeName, {arguments}) {
+    Navigator.pushNamed(context, routeName, arguments: arguments);
   }
 
   void back(context) {
     Navigator.pop(context);
   }
-}
 
-final dsiDialog = _DsiDialog();
+  void exit(context) {
+    Navigator.pushNamedAndRemoveUntil(
+        context, '/', (Route<dynamic> route) => false);
+  }
 
-class _DsiDialog {
-  void showInfo(
-      {@required context,
-      title = 'Sucesso',
+  Object getRouteArgs(context) {
+    return ModalRoute.of(context).settings.arguments;
+  }
+
+  void showMessage({
+    context,
+    message = 'Operação realizada com sucesso.',
+  }) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
+
+  void showAlert(
+      {context,
       message = 'Operação realizada com sucesso.',
-      buttonLabel = 'Fechar',
-      buttonPressed}) {
+      title = 'Sucesso',
+      onPressed}) {
     var dialog = AlertDialog(
       title: Text(title),
       content: Text(message),
       actions: <Widget>[
         FlatButton(
-          child: Text(buttonLabel),
+          child: Text('Fechar'),
           onPressed: () {
-            if (buttonPressed != null) {
-              buttonPressed();
-            } else {
+            if (onPressed == null) {
               Navigator.of(context).pop();
+            } else {
+              onPressed.call();
             }
           },
         ),
       ],
     );
-    showDialog(context: context, child: dialog);
-  }
-}
-
-/// Este Scaffold é customizado para incluir o 'body' dentro de um scrollview,
-/// evitando o overflow da tela, em telas maiores que o tamanho da tela do
-/// aparelho. Esta primeira implementação considera apenas o Scaffold com o
-/// parâmetro 'body'
-class DsiScaffold extends StatelessWidget {
-  final Widget appBar;
-  final Widget body;
-  final Widget floatingActionButton;
-
-  //Na definição do parâmetro {@required this.body}, as chaves indicam que o
-  //parâmetro é nominal (named parameter) e a anotação @required indica que o
-  //parâmetro é obrigatório.
-  DsiScaffold({@required this.body, this.appBar, this.floatingActionButton});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: this.appBar,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Container(
-            height: dsiHelper.getBodyHeight(context),
-            child: this.body,
-          ),
-        ),
-      ),
-      floatingActionButton: this.floatingActionButton,
+    showDialog(
+      context: context,
+      builder: (context) => dialog,
     );
   }
 }

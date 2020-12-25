@@ -1,34 +1,42 @@
 import 'package:dsi_app/constants.dart';
-import 'package:dsi_app/home.dart';
 import 'package:dsi_app/infra.dart';
-import 'package:dsi_app/register.dart';
-import 'package:dsi_app/trocar_senha.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'dsi_widgets.dart';
 
 class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsiScaffold(
-      body: Column(
-        children: <Widget>[
-          Spacer(),
-          Image(
-            image: Images.bsiLogo,
-            height: 100,
+      showAppBar: false,
+      body: SingleChildScrollView(
+        child: Container(
+          height: dsiHelper.getScreenHeight(context),
+          child: Column(
+            children: <Widget>[
+              Spacer(),
+              Image(
+                image: Images.bsiLogo,
+                height: 100,
+              ),
+              Constants.spaceSmallHeight,
+              LoginForm(),
+              Spacer(),
+              Padding(
+                padding: Constants.paddingMedium,
+                child: Text(
+                  'App desenvolvido por Gabriel Alves para a disciplina de'
+                  ' Desenvolvimento de Sistemas de Informação do BSI/UFRPE.',
+                  style: Theme.of(context)
+                      .textTheme
+                      .caption
+                      .copyWith(fontSize: 12),
+                ),
+              )
+            ],
           ),
-          Constants.spaceSmallHeight,
-          LoginForm(),
-          Spacer(),
-          Padding(
-            padding: Constants.paddingMedium,
-            child: Text(
-              'App desenvolvido por Gabriel Alves para a disciplina de'
-              ' Desenvolvimento de Sistemas de Informação do BSI/UFRPE.',
-              style: Theme.of(context).textTheme.caption.copyWith(fontSize: 12),
-            ),
-          )
-        ],
+        ),
       ),
     );
   }
@@ -36,26 +44,30 @@ class LoginPage extends StatelessWidget {
 
 class LoginForm extends StatefulWidget {
   @override
-  LoginFormState createState() {
-    return LoginFormState();
-  }
+  LoginFormState createState() => LoginFormState();
 }
 
 class LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
 
   void _forgotPassword() {
-    dsiHelper.go(context, TrocarSenhaPage());
+    dsiHelper.showAlert(
+      context: context,
+      title: 'Warning',
+      message: '''Falta implementar esta função.\n'''
+          '''Agora é com você:\n'''
+          '''Implemente uma tela para esta funcionalidade!''',
+    );
   }
 
   void _login() {
     if (!_formKey.currentState.validate()) return;
 
-    dsiHelper.go(context, HomePage());
+    dsiHelper.go(context, '/home');
   }
 
   void _register() {
-    dsiHelper.go(context, RegisterPage());
+    dsiHelper.go(context, '/register');
   }
 
   @override
@@ -64,7 +76,9 @@ class LoginFormState extends State<LoginForm> {
       key: _formKey,
       child: Padding(
         padding: Constants.paddingMedium,
-        child: Column(
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          runSpacing: Constants.spaceSmallHeight.height,
           children: <Widget>[
             TextFormField(
               keyboardType: TextInputType.text,
@@ -73,7 +87,6 @@ class LoginFormState extends State<LoginForm> {
                 return value.isEmpty ? 'Login inválido.' : null;
               },
             ),
-            Constants.spaceSmallHeight,
             TextFormField(
               keyboardType: TextInputType.visiblePassword,
               obscureText: true,
@@ -86,11 +99,10 @@ class LoginFormState extends State<LoginForm> {
               alignment: Alignment.centerRight,
               child: FlatButton(
                 child: Text('Esqueceu a senha?'),
-                padding: Constants.paddingSmall,
+                padding: Constants.paddingSmall.copyWith(top: 0.0),
                 onPressed: _forgotPassword,
               ),
             ),
-            Constants.spaceMediumHeight,
             SizedBox(
               width: double.infinity,
               child: RaisedButton(

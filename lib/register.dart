@@ -1,4 +1,5 @@
 import 'package:dsi_app/constants.dart';
+import 'package:dsi_app/dsi_widgets.dart';
 import 'package:dsi_app/infra.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,17 +8,24 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsiScaffold(
-      body: Column(
-        children: <Widget>[
-          Spacer(),
-          Image(
-            image: Images.bsiLogo,
-            height: 100,
+      body: SingleChildScrollView(
+        child: Container(
+          height: dsiHelper.getScreenHeight(context),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            runSpacing: Constants.spaceSmallHeight.height,
+            children: <Widget>[
+              Spacer(),
+              Image(
+                image: Images.bsiLogo,
+                height: 100,
+              ),
+              Constants.spaceSmallHeight,
+              RegisterForm(),
+              Spacer(),
+            ],
           ),
-          Constants.spaceSmallHeight,
-          RegisterForm(),
-          Spacer(),
-        ],
+        ),
       ),
     );
   }
@@ -25,9 +33,7 @@ class RegisterPage extends StatelessWidget {
 
 class RegisterForm extends StatefulWidget {
   @override
-  RegisterFormState createState() {
-    return RegisterFormState();
-  }
+  RegisterFormState createState() => RegisterFormState();
 }
 
 class RegisterFormState extends State<RegisterForm> {
@@ -36,17 +42,13 @@ class RegisterFormState extends State<RegisterForm> {
   void _register() {
     if (!_formKey.currentState.validate()) return;
 
-    dsiDialog.showInfo(
+    dsiHelper.showAlert(
       context: context,
       message: 'Seu cadastro foi realizado com sucesso.',
-      buttonPressed: () => dsiHelper..back(context)..back(context),
+      onPressed: () => dsiHelper..back(context)..back(context),
     );
-
-    //A linha acima é equivalente a executar as duas linhas abaixo:
-    //Navigator.of(context).pop();
-    //Navigator.of(context).pop();
-    //
-    //Para maiores informações, leia sobre 'cascade notation' no Dart.
+    //Para maiores informações sobre o uso do "..",
+    //leia sobre 'cascade notation' no Dart.
     //https://dart.dev/guides/language/language-tour
   }
 
