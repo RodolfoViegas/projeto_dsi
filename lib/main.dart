@@ -1,25 +1,93 @@
-import 'package:dsi_app/aluno.dart';
+import 'package:dsi_app/aluno_widgets.dart';
 import 'package:dsi_app/constants.dart';
 import 'package:dsi_app/home.dart';
 import 'package:dsi_app/login.dart';
-import 'package:dsi_app/pessoa.dart';
-import 'package:dsi_app/professor.dart';
+import 'package:dsi_app/pessoa_widgets.dart';
+import 'package:dsi_app/professor_widget.dart';
 import 'package:dsi_app/register.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:dsi_app/professor.dart';
+import 'package:dsi_app/professor_widget.dart';
+
 
 void main() {
-  _initDb();
+  //TIP a linha abaixo precisa ser chamada antes de montar o app,
+  //devido ao carregamento do firebase.
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(DSIApp());
 }
 
 class DSIApp extends StatelessWidget {
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      // Initialize FlutterFire:
+      future: _initialization,
+      builder: (context, snapshot) {
+        // Check for errors
+        if (snapshot.hasError) {
+          return _buildError(context);
+        }
+
+        // Once complete, show your application
+        if (snapshot.connectionState == ConnectionState.done) {
+          return _buildApp(context);
+        }
+
+        // Otherwise, show something whilst waiting for initialization to complete
+        return _buildLoading(context);
+      },
+    );
+  }
+
+  Widget _buildApp(context) {
     return MaterialApp(
       title: Constants.appName,
       theme: _buildThemeData(),
       initialRoute: '/',
       routes: _buildRoutes(context),
+    );
+  }
+
+  Widget _buildError(context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Center(
+        child: Text(
+          'Erro ao carregar os dados do App.\n'
+          'Tente novamente mais tarde.,',
+          style: TextStyle(
+            color: Colors.red,
+            fontSize: 16.0,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoading(context) {
+    //TIP como o componente não está no contexto do app, já que este ainda não
+    //foi criado, é preciso colocar o componente dentro do Directionality.
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Center(
+        child: Row(
+          children: <Widget>[
+            CircularProgressIndicator(),
+            Text(
+              'carregando...',
+              style: TextStyle(
+                color: Constants.colorGreenBSI1,
+                fontSize: 16.0,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -36,9 +104,9 @@ class DSIApp extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(5.0),
+          borderRadius: Constants.defaultBorderRadius,
         ),
-        contentPadding: Constants.paddingMedium,
+        contentPadding: Constants.insetsMedium,
         labelStyle: TextStyle(
           color: Colors.black,
           fontSize: 16.0,
@@ -48,7 +116,7 @@ class DSIApp extends StatelessWidget {
         buttonColor: Colors.green,
         textTheme: ButtonTextTheme.primary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5.0),
+          borderRadius: Constants.defaultBorderRadius,
         ),
       ),
     );
@@ -63,29 +131,8 @@ class DSIApp extends StatelessWidget {
       '/maintain_pessoa': (context) => MaintainPessoaPage(),
       '/list_aluno': (context) => ListAlunoPage(),
       '/maintain_aluno': (context) => MaintainAlunoPage(),
-      '/list_professor':(context) => ListProfessorPage(),
+      '/list_professor': (context) => ListProfessorPage(),
       '/maintain_professor': (context) => MaintainProfessorPage(),
     };
-  }
-}
-
-void _initDb() {
-  for (var i = 1; i <= 20; i++) {
-    var matricula = i.toString().padLeft(11, '0');
-    var cpf = '${matricula.substring(0, 3)}.'
-        '${matricula.substring(3, 6)}.'
-        '${matricula.substring(6, 9)}-'
-        '${matricula.substring(9)}';
-
-    var aluno = Aluno(
-      cpf: cpf,
-      nome: 'Aluno $i',
-      endereco: 'Rua $i, s/n.',
-      matricula: matricula,
-    );
-    //Observe que como Aluno é uma subclasse de Pessoa, o método 'save' do
-    //controlador de pessoa pode receber um aluno. Leia sobre polimorfismo de
-    //subtipo (ou simplesmente polimorfismo).
-    pessoaController.save(aluno);
   }
 }

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "42715549492",
+    "project_id": "cadastrodeprofessores-d8465",
+    "storage_bucket": "cadastrodeprofessores-d8465.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:42715549492:android:826cbb58cc5954d2f65f61",
+        "android_client_info": {
+          "package_name": "br.ufrpe.bsi.dsi.dsi_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "42715549492-8nm8fqrkis8fqe2sri1tlad17f95fers.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkbYSygob0d5F89xp3Ia2WFJICoLpRTGQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "42715549492-8nm8fqrkis8fqe2sri1tlad17f95fers.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

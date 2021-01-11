@@ -1,165 +1,85 @@
-import 'package:dsi_app/constants.dart';
-import 'package:dsi_app/dsi_widgets.dart';
-import 'package:dsi_app/infra.dart';
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dsi_app/pessoa.dart';
-import 'package:flutter/material.dart';
 
-/// A classe aluno representa um aluno do sistema e é uma subclasse de Pessoa.
-/// Assim, tudo o que Pessoa possui, um aluno também possui.
-/// E todas as operações que podem ser feitas com uma pessoa, também podem ser
-/// feitas com um aluno. Assim, todos os métodos e funções que recebiam uma
-/// Pessoa como parâmetro, também podem receber também um Aluno.
-class Professor extends Pessoa {
+/// A classe [Aluno] representa um aluno do sistema e possui uma instância da
+/// classe [Pessoa]. Da forma que estava nos branches anteriores, a [Pessoa]
+/// só poderia ser um aluno ou um professor. Este problema só pode ser resolvido
+/// com o uso de composição ao invés de herança.
+class Professor {
+  String id;
   String codigo;
+  Pessoa pessoa;
 
-  //Observe que o construtor de aluno repassa alguns dos parâmetros recebidos
-  //para o construtor da super classe (Pessoa).
-  Professor({cpf, nome, endereco, this.codigo})
-      : super(cpf: cpf, nome: nome, endereco: endereco);
+  Professor({this.id, this.codigo, this.pessoa});
+
+  Professor.fromJson(Map<String, dynamic> json) {
+    if (json == null) return;
+    codigo = json['codigo'];
+  }
+
+  Map<String, dynamic> toJson() => {'codigo': codigo};
 }
 
-var alunoController = AlunoController();
+ProfessorController professorController = ProfessorController(); //muddar nome da classe controller
 
-class AlunoController {
-  List<Professor> getAll() {
-    return pessoaController.getAll().whereType<Professor>().toList();
+class ProfessorController {
+  CollectionReference professores;
+
+  ProfessorController() {
+    professores = FirebaseFirestore.instance.collection('professores');
   }
 
-  Professor save(aluno) {
-    return pessoaController.save(aluno);
+  DocumentReference getRef(String id) {
+    return professores.doc(id);
   }
 
-  bool remove(aluno) {
-    return pessoaController.remove(aluno);
-  }
-}
-
-class ListProfessorPage extends StatefulWidget {
-  @override
-  ListProfessorPageState createState() => ListProfessorPageState();
-}
-
-class ListProfessorPageState extends State<ListProfessorPage> {
-  List<Professor> _alunos = alunoController.getAll();
-
-  @override
-  Widget build(BuildContext context) {
-    return DsiScaffold(
-      title: 'Listagem de Professores',
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () => dsiHelper.go(context, '/maintain_professor'),
-      ),
-      body: ListView.builder(
-        shrinkWrap: true,
-        scrollDirection: Axis.vertical,
-        // physics: NeverScrollableScrollPhysics(),
-        itemCount: _alunos.length,
-        itemBuilder: _buildListTileProfessor,
-      ),
-    );
+  FutureOr<Professor> fromJson(DocumentSnapshot snapshot) async {
+    Map<String, dynamic> data = snapshot.data();
+    Professor professor = Professor.fromJson(data);
+    professor.id = snapshot.id;
+    DocumentReference ref = data['pessoa'];
+    professor.pessoa = pessoaController.fromJson(await ref.get());
+    return professor;
   }
 
-  Widget _buildListTileProfessor(context, index) {
-    var aluno = _alunos[index];
-    return Dismissible(
-      key: UniqueKey(),
-      onDismissed: (direction) {
-        setState(() {
-          alunoController.remove(aluno);
-          _alunos.remove(index);
-        });
-        dsiHelper.showMessage(
-          context: context,
-          message: '${aluno.nome} foi removido.',
-        );
-      },
-      background: Container(
-        color: Colors.red,
-        child: Row(
-          children: <Widget>[
-            Constants.spaceSmallWidth,
-            Icon(Icons.delete, color: Colors.white),
-            Spacer(),
-            Icon(Icons.delete, color: Colors.white),
-            Constants.spaceSmallWidth,
-          ],
-        ),
-      ),
-      child: ListTile(
-        title: Text(aluno.nome),
-        subtitle: Column(
-          children: <Widget>[
-            Text('id. ${aluno.id} (NUNCA APRESENTE O ID DE UM REGISTRO!)'),
-            SizedBox(width: 8.0),
-            Text('cod. ${aluno.codigo}'),
-          ],
-        ),
-        onTap: () => dsiHelper.go(context, "/maintain_professor", arguments: aluno),
-      ),
-    );
+  Map<String, dynamic> toJson(Professor professor) {
+    DocumentReference ref = pessoaController.getRef(professor.pessoa.id);
+    return professor.toJson()..putIfAbsent('pessoa', () => ref);
   }
-}
 
-class MaintainProfessorPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    Professor aluno = dsiHelper.getRouteArgs(context);
-    if (aluno == null) {
-      aluno = Professor();
+  FutureOr<List<FutureOr<Professor>>> getAll() async {
+    QuerySnapshot documents = await professores.get();
+    FutureOr<List<FutureOr<Professor>>> result =
+    documents.docs.map(fromJson).toList();
+    return result;
+  }
+
+  FutureOr<Professor> getById(String id) async {
+    DocumentSnapshot doc = await professores.doc(id).get();
+    return fromJson(doc);
+  }
+
+  Future<void> remove(FutureOr<Professor> professor) async {
+    Professor a = await professor;
+    //TIP idealmente as duas linhas abaixo deveriam ser executadas
+    //em uma única transação
+    Future<void> result = professores.doc(a.id).delete();
+    pessoaController.remove(a.pessoa);
+    return result;
+  }
+
+  Future<Professor> save(FutureOr<Professor> professor) async {
+    Professor a = await professor;
+    a.pessoa = await pessoaController.save(a.pessoa);
+    Map<String, dynamic> data = toJson(a);
+    if (a.id == null) {
+      DocumentReference ref = await professores.add(data);
+      return fromJson(await ref.get());
+    } else {
+      professores.doc(a.id).update(data);
+      return a;
     }
-
-    return DsiBasicFormPage(
-      title: 'Professor',
-      onSave: () {
-        alunoController.save(aluno);
-        dsiHelper.go(context, '/list_professor');
-      },
-      body: Wrap(
-        alignment: WrapAlignment.center,
-        runSpacing: Constants.spaceSmallHeight.height,
-        children: <Widget>[
-          TextFormField(
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'CPF*'),
-            validator: (String value) {
-              return value.isEmpty ? 'CPF inválido.' : null;
-            },
-            initialValue: aluno.cpf,
-            onSaved: (newValue) => aluno.cpf = newValue,
-          ),
-          Constants.spaceSmallHeight,
-          TextFormField(
-            keyboardType: TextInputType.text,
-            decoration: const InputDecoration(labelText: 'Nome*'),
-            validator: (String value) {
-              return value.isEmpty ? 'Nome inválido.' : null;
-            },
-            initialValue: aluno.nome,
-            onSaved: (newValue) => aluno.nome = newValue,
-          ),
-          Constants.spaceSmallHeight,
-          TextFormField(
-            keyboardType: TextInputType.text,
-            decoration: const InputDecoration(labelText: 'Endereço*'),
-            validator: (String value) {
-              return value.isEmpty ? 'Endereço inválido.' : null;
-            },
-            initialValue: aluno.endereco,
-            onSaved: (newValue) => aluno.endereco = newValue,
-          ),
-          Constants.spaceSmallHeight,
-          TextFormField(
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Código*'),
-            validator: (String value) {
-              return value.isEmpty ? 'Matrícula inválida.' : null;
-            },
-            initialValue: aluno.codigo,
-            onSaved: (newValue) => aluno.codigo = newValue,
-          ),
-        ],
-      ),
-    );
   }
 }
